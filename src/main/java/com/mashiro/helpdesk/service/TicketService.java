@@ -8,6 +8,8 @@ import com.mashiro.helpdesk.repository.TicketRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Service
 @RequiredArgsConstructor
@@ -42,4 +44,21 @@ public class TicketService {
     public void delete(Long id) {
         ticketRepository.deleteById(id);
     }
+
+
+    @Transactional(readOnly = true)
+    public Page<TicketResponse> list(Pageable pageable) {
+        return ticketRepository.findAllByOrderByCreatedAtDesc(pageable)
+                .map(t -> new TicketResponse(
+                        t.getId(),
+                        t.getCategory(),
+                        t.getStatus(),
+                        t.getPriority(),
+                        t.getTitle(),
+                        t.getContent(),
+                        t.getCreatedAt(),
+                        t.getUpdatedAt()
+                ));
+    }
+
 }
