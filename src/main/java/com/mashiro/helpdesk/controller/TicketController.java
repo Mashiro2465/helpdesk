@@ -12,15 +12,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import com.mashiro.helpdesk.domain.ticket.TicketCategory;
 import com.mashiro.helpdesk.domain.ticket.TicketPriority;
 import com.mashiro.helpdesk.domain.ticket.TicketStatus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.RequestParam;
+import com.mashiro.helpdesk.dto.ticket.TicketStatusUpdateRequest;
 
 
 import java.util.Map;
@@ -76,6 +72,15 @@ public class TicketController {
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
         return ticketService.search(status, category, priority, q, pageable);
+    }
+
+    @PatchMapping("/{id}/status")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void changeStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody TicketStatusUpdateRequest req
+    ) {
+        ticketService.changeStatus(id, req.status());
     }
 
 }

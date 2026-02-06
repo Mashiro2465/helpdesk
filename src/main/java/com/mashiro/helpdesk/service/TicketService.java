@@ -10,10 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
-
 import static com.mashiro.helpdesk.repository.spec.TicketSpecs.*;
 
 @Service
@@ -81,5 +78,11 @@ public class TicketService {
                 ));
     }
 
+    public void changeStatus(Long id, com.mashiro.helpdesk.domain.ticket.TicketStatus status) {
+        com.mashiro.helpdesk.domain.ticket.Ticket t = ticketRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("ticket not found: " + id));
+
+        t.changeStatus(status);
+    }
 
 }
