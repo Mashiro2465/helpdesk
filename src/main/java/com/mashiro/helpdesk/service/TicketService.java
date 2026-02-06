@@ -10,6 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+
+import static com.mashiro.helpdesk.repository.spec.TicketSpecs.*;
 
 @Service
 @RequiredArgsConstructor
@@ -48,17 +53,33 @@ public class TicketService {
 
     @Transactional(readOnly = true)
     public Page<TicketResponse> list(Pageable pageable) {
-        return ticketRepository.findAllByOrderByCreatedAtDesc(pageable)
+        return ticketRepository.findAll(pageable)
                 .map(t -> new TicketResponse(
-                        t.getId(),
-                        t.getCategory(),
-                        t.getStatus(),
-                        t.getPriority(),
-                        t.getTitle(),
-                        t.getContent(),
-                        t.getCreatedAt(),
-                        t.getUpdatedAt()
+                        t.getId(), t.getCategory(), t.getStatus(), t.getPriority(),
+                        t.getTitle(), t.getContent(), t.getCreatedAt(), t.getUpdatedAt()
                 ));
     }
+
+    @Transactional(readOnly = true)
+    public Page<TicketResponse> search(
+            com.mashiro.helpdesk.domain.ticket.TicketStatus status,
+            com.mashiro.helpdesk.domain.ticket.TicketCategory category,
+            com.mashiro.helpdesk.domain.ticket.TicketPriority priority,
+            String q,
+            Pageable pageable
+    ) {
+        Specification<com.mashiro.helpdesk.domain.ticket.Ticket> spec =
+                Specification.where(status(status))
+                        .and(category(category))
+                        .and(priority(priority))
+                        .and(keyword(q));
+
+        return ticketRepository.findAll(spec, pageable)
+                .map(t -> new TicketResponse(
+                        t.getId(), t.getCategory(), t.getStatus(), t.getPriority(),
+                        t.getTitle(), t.getContent(), t.getCreatedAt(), t.getUpdatedAt()
+                ));
+    }
+
 
 }
