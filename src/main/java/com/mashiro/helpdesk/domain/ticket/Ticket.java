@@ -3,6 +3,8 @@ package com.mashiro.helpdesk.domain.ticket;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import com.mashiro.helpdesk.domain.user.AppUser;
+
 
 import java.time.LocalDateTime;
 
@@ -41,6 +43,11 @@ public class Ticket {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignee_id")
+    private AppUser assignee;
+
+
     public static Ticket create(TicketCategory category, TicketPriority priority, String title, String content) {
         Ticket t = new Ticket();
         t.category = category;
@@ -65,4 +72,10 @@ public class Ticket {
         this.status = status;
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void assignTo(AppUser assignee) {
+        this.assignee = assignee;
+        this.updatedAt = java.time.LocalDateTime.now();
+    }
+
 }

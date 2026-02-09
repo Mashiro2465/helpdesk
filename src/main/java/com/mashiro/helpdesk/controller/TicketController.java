@@ -1,8 +1,6 @@
 package com.mashiro.helpdesk.controller;
 
-import com.mashiro.helpdesk.dto.ticket.TicketCreateRequest;
-import com.mashiro.helpdesk.dto.ticket.TicketResponse;
-import com.mashiro.helpdesk.dto.ticket.TicketUpdateRequest;
+import com.mashiro.helpdesk.dto.ticket.*;
 import com.mashiro.helpdesk.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +14,8 @@ import com.mashiro.helpdesk.domain.ticket.TicketCategory;
 import com.mashiro.helpdesk.domain.ticket.TicketPriority;
 import com.mashiro.helpdesk.domain.ticket.TicketStatus;
 import org.springframework.web.bind.annotation.RequestParam;
-import com.mashiro.helpdesk.dto.ticket.TicketStatusUpdateRequest;
+import java.security.Principal;
+
 
 
 import java.util.Map;
@@ -81,6 +80,32 @@ public class TicketController {
             @Valid @RequestBody TicketStatusUpdateRequest req
     ) {
         ticketService.changeStatus(id, req.status());
+    }
+
+    //담당자 지정
+    @PatchMapping("/{id}/assignee")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void assign(@PathVariable Long id, @Valid @RequestBody TicketAssignRequest req) {
+        ticketService.assign(id, req.assigneeUsername());
+    }
+
+    //댓글 작성
+    @PostMapping("/{id}/comments")
+    @ResponseStatus(HttpStatus.CREATED)
+    public java.util.Map<String, Object> addComment(
+            @PathVariable Long id,
+            @Valid @RequestBody TicketCommentCreateRequest req,
+            Principal principal
+    ) {
+        Long commentId = ticketService.addComment(id, principal.getName(), req.content());
+        return java.util.Map.of("id", commentId);
+    }
+
+
+    //댓글 목록 조회
+    @GetMapping("/{id}/comments")
+    public java.util.List<TicketCommentResponse> comments(@PathVariable Long id) {
+        return ticketService.getComments(id);
     }
 
 }

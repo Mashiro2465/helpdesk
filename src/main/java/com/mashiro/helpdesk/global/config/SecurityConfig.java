@@ -24,6 +24,12 @@ public class SecurityConfig {
                         // 관리자 전용
                         .requestMatchers("/api/tickets/search").hasRole("ADMIN")
                         .requestMatchers("/api/tickets/*/status").hasRole("ADMIN")
+                        .requestMatchers("/api/tickets/*/status").hasRole("ADMIN")
+                        .requestMatchers("/api/tickets/*/assignee").hasRole("ADMIN")
+
+                        // 댓글 작성까지 관리자만 하고 싶으면
+                        .requestMatchers("/api/tickets/*/comments").hasRole("ADMIN")
+
 
                         // 나머지 API는 인증 필요
                         .requestMatchers("/api/**").authenticated()
