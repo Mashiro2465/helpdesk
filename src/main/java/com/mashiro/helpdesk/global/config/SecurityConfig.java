@@ -1,55 +1,40 @@
 package com.mashiro.helpdesk.global.config;
 
+import com.mashiro.helpdesk.global.security.JwtAuthFilter;
+import com.mashiro.helpdesk.global.security.JwtTokenProvider;
+import com.mashiro.helpdesk.global.security.RestAccessDeniedHandler;
+import com.mashiro.helpdesk.global.security.RestAuthenticationEntryPoint;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, JwtTokenProvider jwt) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // swagger는 열어두기
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
 
                         // 관리자 전용
                         .requestMatchers("/api/tickets/search").hasRole("ADMIN")
                         .requestMatchers("/api/tickets/*/status").hasRole("ADMIN")
 
-                        // 나머지 API는 일단 인증만
+                        // 나머지 API는 인증 필요
                         .requestMatchers("/api/**").authenticated()
-
-                        // 그 외는 허용
                         .anyRequest().permitAll()
                 )
-                // JWT 전까지는 Basic 인증으로 간단히 테스트
-                .httpBasic(Customizer.withDefaults())
-                .formLogin(form -> form.disable());
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new RestAuthenticationEntryPoint())
+                        .accessDeniedHandler(new RestAccessDeniedHandler())
+                )
+                .addFilterBefore(new JwtAuthFilter(jwt), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    UserDetailsService users() {
-        UserDetails user = User.withUsername("user")
-                .password("{noop}user1234")
-                .roles("USER")
-                .build();
-
-        UserDetails admin = User.withUsername("admin")
-                .password("{noop}admin1234")
-                .roles("ADMIN")
-                .build();
-
-        return new InMemoryUserDetailsManager(user, admin);
     }
 }
